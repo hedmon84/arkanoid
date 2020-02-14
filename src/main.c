@@ -123,7 +123,7 @@ void S_boarders()
 bool moveball()
 {
 
-    if (bouncingleft == true || bouncingup == true || bouncingdown == true)
+    if (bouncingleft == true || bouncingup == true || bouncingdown == true || bouncingright == true)
     {
         return move = true;
     }
@@ -145,7 +145,7 @@ bool BorderR(int8_t ballposy)
 bool BorderL(int8_t ballposy)
 {
 
-    if (ballposy == 17)
+    if (ballposy == 18)
     {
 
         bouncingleft = false;
@@ -177,7 +177,7 @@ bool BorderDown(int8_t ballposx)
     if (contador >= 2)
     {
 
-        if (ballposx == 27)
+        if (ballposx == 28)
         {
             bouncingleft = false;
             bouncingup = false;
@@ -253,6 +253,21 @@ void players()
             put_char(149);
         }
 
+        if ((ballposx, ballposy) == (locat.x, locat.y))
+        {
+
+            bouncingright = false;
+            bouncingup = false;
+            bouncingleft = false;
+            bouncingright = false;
+            set_cursor(ballposx--, ballposy);
+            put_char(255);
+            set_cursor(ballposx, ballposy);
+            put_char(149);
+        }
+
+        /*
+
         if (bouncingdown == true)
         {
 
@@ -263,6 +278,7 @@ void players()
             set_cursor(ballposx, ballposy);
             put_char(149);
         }
+        */
 
         //up
         /*  if (k == 4 && locat.x > 0)
