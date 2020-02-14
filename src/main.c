@@ -191,6 +191,26 @@ bool BorderDown(int8_t ballposx)
     }
 }
 
+bool cursorB(int8_t a, int8_t b)
+{
+
+    if (contador >= 4)
+    {
+
+        if ((a, b) == (ballposx, ballposy))
+        {
+            bouncingleft = false;
+            bouncingright = false;
+            bouncingup = false;
+
+            return bouncingdown = true;
+        }
+        bouncingdown = false;
+    }
+
+    return bouncingdown = false;
+}
+
 void players()
 {
     S_boarders();
@@ -213,7 +233,7 @@ void players()
         BorderR(ballposy);
         BorderL(ballposy);
         BorderUp(ballposx);
-        BorderDown(ballposx);
+        cursorB(locat.x, locat.y);
 
         if (moveball() == false)
         {
@@ -253,13 +273,9 @@ void players()
             put_char(149);
         }
 
-        if ((ballposx, ballposy) == (locat.x, locat.y))
+        if (bouncingdown == true)
         {
 
-            bouncingright = false;
-            bouncingup = false;
-            bouncingleft = false;
-            bouncingright = false;
             set_cursor(ballposx--, ballposy);
             put_char(255);
             set_cursor(ballposx, ballposy);
@@ -317,7 +333,7 @@ void players()
         set_cursor(locat.x, locat.y);
         put_char(22);
         put_char(21);
-        delay_ms(150);
+        delay_ms(130);
     }
 }
 
