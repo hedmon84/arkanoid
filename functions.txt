@@ -1,0 +1,10 @@
+636 players
+504 S_boarders
+104 Paint_Boxes
+88 Paint_Ball
+80 BorderDown
+64 BorderL
+56 moveball
+48 BorderUp
+40 main
+32 BorderR
