@@ -10,18 +10,26 @@
 #define RIGHT 3
 #define COMING_UP 4
 #define COMING_DOWN 5
+#define RAND_MAX ((1U << 31) - 1)
 
 uint8_t fgColor, bgColor;
 
 Object loc, locat;
 Object border, bright, bleft, borL, ballpos, boxespos;
 SpiderObj spider;
-uint8_t ballposx = 27;
-uint8_t ballposy = 38;
+uint8_t ballposx = 26;
+uint8_t ballposy = 39;
+int8_t eventup = -1;
+int8_t eventdown = -1;
+int8_t eventleft = -1;
+int8_t eventright = -1;
+int8_t eventcursor = -1;
 bool bouncingleft = false;
 bool bouncingright = false;
 bool bouncingup = false;
+bool bouncingcursor = false;
 int contador = 0;
+int rseed = 0;
 bool move = false;
 bool bouncingdown = false;
 
@@ -36,6 +44,11 @@ void Paint_Boxes()
     set_cursor(boxespos.x, boxespos.y + 1);
     put_char(32);
 }
+
+// int rands()
+// {
+//     rseed = (rseed * 1103515245 + 12345) & RAND_MAX;
+// }
 
 void Paint_Ball(uint8_t xs, uint8_t ys)
 {
@@ -123,7 +136,7 @@ void S_boarders()
 bool moveball()
 {
 
-    if (bouncingleft == true || bouncingup == true || bouncingdown == true || bouncingright == true)
+    if (bouncingleft == true || bouncingup == true || bouncingdown == true || bouncingright == true || bouncingcursor == true)
     {
         return move = true;
     }
@@ -135,38 +148,57 @@ bool moveball()
 bool BorderR(int8_t ballposy)
 {
 
-    if (ballposy == 61)
+    if (eventright > 1)
     {
+        eventright = -1;
+    }
 
-        return bouncingleft = true;
+    if (ballposy > 60.8)
+    {
+        bouncingup = false;
+        bouncingdown = false;
+        bouncingleft = false;
+        bouncingcursor = false;
+        eventright++;
+
+        return bouncingright = true;
     }
 }
 
 bool BorderL(int8_t ballposy)
 {
 
-    if (ballposy == 18)
+    if (eventleft > 1)
     {
+        eventleft = -1;
+    }
 
-        bouncingleft = false;
+    if (ballposy < 19.5)
+    {
         bouncingup = false;
         bouncingdown = false;
-
-        return bouncingright = true;
+        bouncingright = false;
+        bouncingcursor = false;
+        eventleft++;
+        return bouncingleft = true;
     }
-    else
-
-        return bouncingright = false;
 }
 
 bool BorderUp(int8_t ballposx)
 {
+    if (eventup > 2)
+    {
+        eventup = -1;
+    }
 
-    if (ballposx == 3)
+    if (ballposx < 5)
     {
 
+        bouncingright = false;
         bouncingdown = false;
         bouncingleft = false;
+        bouncingcursor = false;
+        eventup++;
         return bouncingup = true;
     }
 }
@@ -174,41 +206,70 @@ bool BorderUp(int8_t ballposx)
 bool BorderDown(int8_t ballposx)
 {
 
-    if (contador >= 2)
+    if (eventdown > 2)
     {
-
-        if (ballposx == 28)
-        {
-            bouncingleft = false;
-            bouncingup = false;
-            return bouncingdown = true;
-        }
+        eventdown = -1;
     }
 
-    else
+    if (ballposx > 27.5)
     {
-        return bouncingdown = false;
+
+        bouncingright = false;
+        bouncingleft = false;
+        bouncingup = false;
+        bouncingcursor = false;
+        eventdown++;
+
+        return bouncingdown = true;
     }
 }
 
-bool cursorB(int8_t a, int8_t b)
+bool cursorB(int8_t x, int8_t y, int8_t ballx, int8_t ballpy)
 {
 
-    if (contador >= 4)
+    if (eventcursor > 2)
     {
-
-        if ((a, b) == (ballposx, ballposy))
-        {
-            bouncingleft = false;
-            bouncingright = false;
-            bouncingup = false;
-
-            return bouncingdown = true;
-        }
-        bouncingdown = false;
+        eventcursor = -1;
     }
 
-    return bouncingdown = false;
+    if (ballposx > 25)
+    {
+        if ((x, y) == (ballx, ballpy))
+        {
+
+            bouncingright = false;
+            bouncingleft = false;
+            bouncingup = false;
+            bouncingdown = false;
+            eventcursor++;
+
+            return bouncingcursor = true;
+        }
+
+        if ((x, y + 6) == (ballx, ballpy + 6))
+        {
+
+            bouncingright = false;
+            bouncingleft = false;
+            bouncingup = false;
+            bouncingdown = false;
+            eventcursor++;
+
+            return bouncingcursor = true;
+        }
+
+        if ((x, y - 6) == (ballx, ballpy - 6))
+        {
+
+            bouncingright = false;
+            bouncingleft = false;
+            bouncingup = false;
+            bouncingdown = false;
+            eventcursor++;
+
+            return bouncingcursor = true;
+        }
+    }
 }
 
 void players()
@@ -216,7 +277,9 @@ void players()
     S_boarders();
     Paint_Boxes();
     locat.x = 27;
-    locat.y = 39;
+    locat.y = 38;
+    int random = 0;
+
     set_cursor(locat.x, locat.y);
     put_char(22);
     uint8_t k;
@@ -226,80 +289,14 @@ void players()
 
     while (1)
     {
+        //******************************************Move keys ************************************************//
         k = keypad_getkey();
-
         contador++;
-
-        BorderR(ballposy);
-        BorderL(ballposy);
-        BorderUp(ballposx);
-        cursorB(locat.x, locat.y);
-
-        if (moveball() == false)
-        {
-
-            set_cursor(ballposx--, ballposy++);
-            put_char(255);
-            set_cursor(ballposx, ballposy);
-            put_char(149);
-        }
-
-        if (bouncingleft == true)
-        {
-
-            set_cursor(ballposx++, ballposy--);
-            put_char(255);
-            set_cursor(ballposx, ballposy);
-            put_char(149);
-        }
-
-        if (bouncingright == true)
-        {
-
-            //Paint_Ball(ballposx, ballposy++);
-
-            set_cursor(ballposx--, ballposy++);
-            put_char(255);
-            set_cursor(ballposx, ballposy);
-            put_char(149);
-        }
-        if (bouncingup == true)
-        {
-
-            //Paint_Ball(ballposx++, ballposy--);
-            set_cursor(ballposx++, ballposy--);
-            put_char(255);
-            set_cursor(ballposx, ballposy);
-            put_char(149);
-        }
-
-        if (bouncingdown == true)
-        {
-
-            set_cursor(ballposx--, ballposy);
-            put_char(255);
-            set_cursor(ballposx, ballposy);
-            put_char(149);
-        }
-
-        /*
-
-        if (bouncingdown == true)
-        {
-
-            //Paint_Ball(ballposx--, ballposy--);
-
-            set_cursor(ballposx--, ballposy--);
-            put_char(255);
-            set_cursor(ballposx, ballposy);
-            put_char(149);
-        }
-        */
 
         //up
         /*  if (k == 4 && locat.x > 0)
         {
-  ballposy--;
+            
             set_cursor(locat.x, locat.y);
             put_char(255);
             locat.x--;
@@ -315,7 +312,6 @@ void players()
         //left
         if (k == 1 && locat.y > 18)
         {
-
             set_cursor(locat.x, locat.y + 1);
             put_char(255);
             locat.y--;
@@ -324,7 +320,6 @@ void players()
         //right
         else if (k == 2 && locat.y < 61)
         {
-
             set_cursor(locat.x, locat.y);
             put_char(255);
             locat.y++;
@@ -334,6 +329,165 @@ void players()
         put_char(22);
         put_char(21);
         delay_ms(130);
+
+        //******************************************Move keys ************************************************//
+
+        BorderR(ballposy);
+        BorderL(ballposy);
+        BorderUp(ballposx);
+        BorderDown(ballposx);
+        cursorB(locat.x, locat.y, ballposx, ballposy);
+
+        // //works
+
+        if (moveball() == false)
+        {
+            set_cursor(ballposx--, ballposy);
+            put_char(255);
+            set_cursor(ballposx, ballposy);
+            put_char(149); /* code */
+        }
+
+        // //works // movements works
+
+        if (bouncingcursor == true)
+        {
+
+            if (eventcursor == 0)
+            {
+                set_cursor(ballposx--, ballposy);
+                put_char(255);
+                set_cursor(ballposx, ballposy);
+                put_char(149);
+            }
+
+            else if (eventcursor == 1)
+            {
+                set_cursor(ballposx--, ballposy++);
+                put_char(255);
+                set_cursor(ballposx, ballposy);
+                put_char(149);
+            }
+
+            else if (eventcursor == 2)
+            {
+                set_cursor(ballposx--, ballposy--);
+                put_char(255);
+                set_cursor(ballposx, ballposy);
+                put_char(149);
+            }
+        }
+
+        if (bouncingup == true)
+        {
+
+            if (eventup == 0)
+            {
+
+                //Paint_Ball(ballposx++, ballposy--);
+                set_cursor(ballposx++, ballposy);
+                put_char(255);
+                set_cursor(ballposx, ballposy);
+                put_char(149);
+            }
+
+            else if (eventup == 1)
+            {
+
+                //Paint_Ball(ballposx++, ballposy--);
+                set_cursor(ballposx++, ballposy--);
+                put_char(255);
+                set_cursor(ballposx, ballposy);
+                put_char(149);
+            }
+
+            else if (eventup == 2)
+            {
+
+                //Paint_Ball(ballposx++, ballposy--);
+                set_cursor(ballposx++, ballposy++);
+                put_char(255);
+                set_cursor(ballposx, ballposy);
+                put_char(149);
+            }
+        }
+        // //works
+
+        if (bouncingdown == true)
+        {
+
+            if (eventdown == 0)
+            {
+                set_cursor(ballposx--, ballposy);
+                put_char(255);
+                set_cursor(ballposx, ballposy);
+                put_char(149);
+            }
+
+            else if (eventdown == 1)
+            {
+                set_cursor(ballposx--, ballposy++);
+                put_char(255);
+                set_cursor(ballposx, ballposy);
+                put_char(149);
+            }
+
+            else if (eventdown == 2)
+            {
+                set_cursor(ballposx--, ballposy--);
+                put_char(255);
+                set_cursor(ballposx, ballposy);
+                put_char(149);
+            }
+        }
+
+        // works
+
+        if (bouncingright == true)
+        {
+
+            if (eventright == 0)
+            {
+
+                set_cursor(ballposx++, ballposy--);
+                put_char(255);
+                set_cursor(ballposx, ballposy);
+                put_char(149);
+            }
+
+            else if (eventright == 1)
+            {
+
+                set_cursor(ballposx--, ballposy--);
+                put_char(255);
+                set_cursor(ballposx, ballposy);
+                put_char(149);
+            }
+        }
+
+        //works
+
+        if (bouncingleft == true)
+        {
+
+            if (eventleft == 0)
+            {
+
+                set_cursor(ballposx++, ballposy++);
+                put_char(255);
+                set_cursor(ballposx, ballposy);
+                put_char(149);
+            }
+
+            else if (eventleft == 1)
+            {
+
+                set_cursor(ballposx--, ballposy++);
+                put_char(255);
+                set_cursor(ballposx, ballposy);
+                put_char(149);
+            }
+        }
     }
 }
 
